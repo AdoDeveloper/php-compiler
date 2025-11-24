@@ -290,7 +290,7 @@ export default function Home() {
                 className="flex items-center gap-2 px-3 sm:px-4 py-2 border border-gray-800 text-gray-400 hover:text-white hover:border-gray-700 rounded-lg text-xs sm:text-sm font-medium transition-all whitespace-nowrap"
               >
                 <FiBook className="text-sm sm:text-base" />
-                <span>Examples</span>
+                <span>{t.buttons.examples}</span>
                 <VscChevronDown className={`transition-transform text-xs ${showExamples ? 'rotate-180' : ''}`} />
               </button>
               {showExamples && (

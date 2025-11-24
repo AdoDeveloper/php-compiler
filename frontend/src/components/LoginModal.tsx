@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { VscLock, VscEye, VscEyeClosed, VscClose } from 'react-icons/vsc';
 import { useAuth } from '../contexts/AuthContext';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -11,6 +12,7 @@ interface LoginModalProps {
 
 export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const { login } = useAuth();
+  const { t } = useLanguage();
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
@@ -31,7 +33,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
         setPassword('');
         onClose();
       } else {
-        setError('Incorrect password. Please try again.');
+        setError(t.terminal.incorrectPassword);
         setPassword('');
       }
     }, 500); // Simulate API delay
@@ -60,8 +62,8 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
               <VscLock className="text-white text-base sm:text-lg" />
             </div>
             <div className="min-w-0">
-              <h2 className="text-base sm:text-lg font-semibold text-white truncate">Terminal Access</h2>
-              <p className="text-[10px] sm:text-xs text-gray-500">Authentication required</p>
+              <h2 className="text-base sm:text-lg font-semibold text-white truncate">{t.terminal.accessTitle}</h2>
+              <p className="text-[10px] sm:text-xs text-gray-500">{t.terminal.accessSubtitle}</p>
             </div>
           </div>
           <button
@@ -74,14 +76,11 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
         {/* Content */}
         <form onSubmit={handleSubmit} className="p-4 sm:p-6">
-          <p className="text-xs sm:text-sm text-gray-400 mb-4 sm:mb-6">
-            Enter the password to access the interactive terminal console.
-          </p>
 
           {/* Password Input */}
           <div className="mb-4 sm:mb-6">
             <label className="block text-xs sm:text-sm font-medium text-gray-300 mb-2">
-              Password
+              {t.terminal.passwordLabel}
             </label>
             <div className="relative">
               <input
@@ -89,7 +88,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 sm:px-4 py-2 sm:py-3 pr-10 sm:pr-12 text-sm sm:text-base text-white placeholder-gray-500 focus:outline-none focus:border-gray-600 transition-colors"
-                placeholder="Enter password"
+                placeholder={t.terminal.passwordPlaceholder}
                 autoFocus
                 disabled={isLoading}
               />
@@ -117,7 +116,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
               className="flex-1 px-3 sm:px-4 py-2 sm:py-3 border border-gray-800 text-gray-400 hover:text-white hover:border-gray-700 rounded-lg text-xs sm:text-sm font-medium transition-all"
               disabled={isLoading}
             >
-              Cancel
+              {t.buttons.cancel}
             </button>
             <button
               type="submit"
@@ -128,7 +127,7 @@ export default function LoginModal({ isOpen, onClose }: LoginModalProps) {
                   : 'bg-white text-black hover:bg-gray-100'
               }`}
             >
-              {isLoading ? 'Authenticating...' : 'Access Terminal'}
+              {isLoading ? t.terminal.authenticating : t.terminal.accessButton}
             </button>
           </div>
         </form>

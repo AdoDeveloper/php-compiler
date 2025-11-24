@@ -20,7 +20,7 @@ const getApiUrl = () => {
 // Import xterm components only on client-side
 const XTermTerminal = dynamic(
   () => import('./XTermTerminal'),
-  { ssr: false, loading: () => <div className="h-80 flex items-center justify-center text-gray-500">Loading interactive terminal...</div> }
+  { ssr: false }
 );
 
 const LoginModal = dynamic(
@@ -165,7 +165,7 @@ export default function Terminal() {
                 }`}
               >
                 <VscTerminal className="text-xs sm:text-sm flex-shrink-0" />
-                <span>Logs</span>
+                <span>{t.labels.logs}</span>
                 {logs.length > 0 && (
                   <span className="text-[9px] sm:text-xs bg-gray-700 px-1 sm:px-1.5 py-0.5 rounded-full">
                     {logs.length}
@@ -181,7 +181,7 @@ export default function Terminal() {
                 }`}
               >
                 <VscDebugConsole className="text-xs sm:text-sm flex-shrink-0" />
-                <span>Terminal</span>
+                <span>{t.labels.interactive}</span>
                 {!isAuthenticated && (
                   <VscLock className="text-xs text-yellow-500 flex-shrink-0" />
                 )}
@@ -195,7 +195,7 @@ export default function Terminal() {
                   className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 text-[10px] sm:text-xs border border-gray-800 text-gray-400 hover:text-white hover:border-gray-700 rounded-lg transition-all whitespace-nowrap"
                 >
                   <VscClearAll className="flex-shrink-0" />
-                  <span className="hidden xs:inline">{t.labels.terminalClear}</span>
+                  <span>{t.labels.terminalClear}</span>
                 </button>
               )}
 
@@ -206,10 +206,10 @@ export default function Terminal() {
                     setActiveTab('logs');
                   }}
                   className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 text-[10px] sm:text-xs border border-gray-800 text-gray-400 hover:text-red-400 hover:border-red-700 rounded-lg transition-all whitespace-nowrap"
-                  title="Logout"
+                  title={t.buttons.logout}
                 >
                   <VscSignOut className="flex-shrink-0" />
-                  <span className="hidden xs:inline">Logout</span>
+                  <span>{t.buttons.logout}</span>
                 </button>
               )}
             </div>
@@ -248,12 +248,12 @@ export default function Terminal() {
                 <div className="h-full flex items-center justify-center text-gray-500">
                   <div className="text-center space-y-3">
                     <div className="text-4xl"><VscLock /></div>
-                    <p className="text-sm">Authentication required to access interactive terminal</p>
+                    <p className="text-sm">{t.terminal.authRequired}</p>
                     <button
                       onClick={() => setShowLoginModal(true)}
                       className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition-all"
                     >
-                      Login
+                      {t.buttons.login}
                     </button>
                   </div>
                 </div>
