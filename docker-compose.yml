@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  # Servicio del compilador (Lex/Yacc)
+  compiler:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.compiler
+    container_name: php-compiler
+    volumes:
+      - ./compiler:/compiler
+      - compiler-temp:/tmp/php-compiler
+    networks:
+      - compiler-network
+
+  # Servicio del backend (NestJS)
+  backend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.backend
+    container_name: php-compiler-backend
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - FRONTEND_URL=http://localhost:3002
+    volumes:
+      - ./compiler:/compiler
+      - compiler-temp:/tmp/php-compiler
+    depends_on:
+      - compiler
+    networks:
+      - compiler-network
+    restart: unless-stopped
+
+  # Servicio del frontend (NextJS)
+  frontend:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.frontend
+      args:
+        - NEXT_PUBLIC_TERMINAL_PASSWORD=${NEXT_PUBLIC_TERMINAL_PASSWORD:-pass}
+    container_name: php-compiler-frontend
+    ports:
+      - "3002:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:3001
+    depends_on:
+      - backend
+    networks:
+      - compiler-network
+    restart: unless-stopped
+
+volumes:
+  compiler-temp:
+
+networks:
+  compiler-network:
+    driver: bridge

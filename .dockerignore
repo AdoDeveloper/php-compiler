@@ -1,0 +1,48 @@
+# Node modules
+**/node_modules
+**/.next
+**/dist
+
+# Git
+.git
+.gitignore
+
+# Docker
+docker-compose.yml
+Dockerfile
+.dockerignore
+
+# Logs
+**/*.log
+**/logs
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temp files
+**/.env.local
+**/.env.development
+**/tmp
+**/*.tmp
+
+# Compiler artifacts (will be built in container)
+compiler/phpcompiler
+compiler/*.tab.*
+compiler/lex.yy.c
+compiler/*.output
+
+# Test files
+**/test*.php
+**/ejemplo*.php
+compiler/ejemplos/
+
+# Documentation
+*.md
+!README.md

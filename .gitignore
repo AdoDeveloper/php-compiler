@@ -1,0 +1,40 @@
+# Compilador
+compiler/phpcompiler
+compiler/*.o
+compiler/y.tab.c
+compiler/y.tab.h
+compiler/lex.yy.c
+compiler/y.output
+compiler/output.c
+
+# Node
+node_modules/
+.next/
+out/
+dist/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Build
+build/
+*.exe
+*.out
+a.out
+
+# Temporal
+/tmp/
+*.tmp

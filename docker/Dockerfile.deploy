@@ -1,0 +1,114 @@
+# ============================================
+# DOCKERFILE EXCLUSIVO PARA RENDER DEPLOYMENT
+# ============================================
+# Este archivo es SOLO para deployment en Render.com
+# NO usar para desarrollo local con docker-compose
+# Para desarrollo local usar: docker-compose.yml
+# ============================================
+#
+# Multi-stage Dockerfile para deployment en Render
+# Combina Compiler + Backend + Frontend en un solo contenedor
+
+# ============================================
+# Stage 1: Build del Compilador (Bison/Flex)
+# ============================================
+FROM alpine:latest AS compiler-builder
+
+# Instalar herramientas de compilación en Alpine
+RUN apk add --no-cache \
+    flex \
+    flex-dev \
+    bison \
+    gcc \
+    musl-dev \
+    make
+
+WORKDIR /compiler-build
+COPY compiler/php.l compiler/php.y compiler/tabsim.h compiler/tabsim.c compiler/Makefile ./
+
+# Compilar el compilador PHP
+RUN bison -d -v php.y && \
+    flex php.l && \
+    gcc -Wall -g -o phpcompiler php.tab.c lex.yy.c -lfl
+
+# ============================================
+# Stage 2: Build del Backend (NestJS)
+# ============================================
+FROM node:20-alpine AS backend-builder
+
+# Instalar herramientas de build para node-gyp/node-pty
+RUN apk add --no-cache python3 make g++
+
+WORKDIR /backend-build
+COPY backend/package*.json ./
+RUN npm install
+
+COPY backend/ ./
+RUN npm run build
+
+# ============================================
+# Stage 3: Build del Frontend (Next.js)
+# ============================================
+FROM node:20-alpine AS frontend-builder
+
+# Recibir la variable de entorno en tiempo de build
+ARG NEXT_PUBLIC_TERMINAL_PASSWORD
+ENV NEXT_PUBLIC_TERMINAL_PASSWORD=${NEXT_PUBLIC_TERMINAL_PASSWORD}
+
+WORKDIR /frontend-build
+COPY frontend/package*.json ./
+RUN npm install
+
+COPY frontend/ ./
+RUN npm run build
+
+# ============================================
+# Stage 4: Imagen Final con Backend + Compiler + Frontend
+# ============================================
+FROM node:20-alpine
+
+# Instalar herramientas de build para node-gyp, wget para health check, y bash para terminal interactiva
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    wget \
+    net-tools \
+    bash
+
+# Crear directorios
+WORKDIR /app
+RUN mkdir -p /compiler
+
+# Copiar compilador construido y asegurar permisos de ejecución
+COPY --from=compiler-builder /compiler-build/phpcompiler /compiler/
+COPY --from=compiler-builder /compiler-build/tabsim.h /compiler/
+RUN chmod +x /compiler/phpcompiler
+
+# Copiar backend compilado
+WORKDIR /app/backend
+COPY --from=backend-builder /backend-build/dist ./dist
+COPY --from=backend-builder /backend-build/package*.json ./
+COPY --from=backend-builder /backend-build/node_modules ./node_modules
+
+# Copiar frontend construido
+COPY --from=frontend-builder /frontend-build/.next /app/frontend/.next
+COPY --from=frontend-builder /frontend-build/package*.json /app/frontend/
+COPY --from=frontend-builder /frontend-build/next.config.js /app/frontend/
+
+WORKDIR /app/frontend
+RUN npm install --omit=dev --production
+
+# Copiar servidor de integración
+WORKDIR /app
+COPY server.js ./
+RUN npm install http-proxy
+
+# Crear script de inicio
+COPY docker/start.sh /start.sh
+RUN chmod +x /start.sh
+
+# Exponer puerto (Render usa PORT env variable, por defecto 10000)
+EXPOSE 10000
+
+CMD ["/start.sh"]

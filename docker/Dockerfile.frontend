@@ -1,0 +1,31 @@
+# Dockerfile para el frontend NextJS - Docker Desktop
+# NO modificar este archivo - es para desarrollo local con docker-compose
+# Para deployment en Render usar: docker/Dockerfile.deploy
+FROM node:20-alpine
+
+# Crear directorio de trabajo
+WORKDIR /app
+
+# Copiar package.json y package-lock.json
+COPY frontend/package*.json ./
+
+# Instalar dependencias
+RUN npm install
+
+# Copiar código fuente
+COPY frontend/ ./
+
+# Argumento de build para la contraseña (se pasa desde docker-compose)
+ARG NEXT_PUBLIC_TERMINAL_PASSWORD=pass
+
+# Establecer como variable de entorno para build y runtime
+ENV NEXT_PUBLIC_TERMINAL_PASSWORD=${NEXT_PUBLIC_TERMINAL_PASSWORD}
+
+# Compilar aplicación
+RUN npm run build
+
+# Exponer puerto
+EXPOSE 3000
+
+# Comando de inicio
+CMD ["npm", "start"]

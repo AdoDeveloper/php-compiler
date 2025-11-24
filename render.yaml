@@ -1,0 +1,9 @@
+services:
+  # Servicio único que despliega todo el stack usando Docker Compose
+  - type: web
+    name: php-compiler-app
+    runtime: docker
+    dockerfilePath: ./docker/Dockerfile.deploy
+    plan: free
+    region: oregon
+    healthCheckPath: /api/health

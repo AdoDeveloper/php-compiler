@@ -1,0 +1,45 @@
+# Dockerfile para el backend NestJS - Docker Desktop
+# NO modificar este archivo - es para desarrollo local con docker-compose
+# Para deployment en Render usar: docker/Dockerfile.deploy
+FROM node:20-alpine
+
+# Instalar dependencias del sistema incluyendo flex-dev para libfl y python para node-pty
+RUN apk add --no-cache gcc g++ make flex bison flex-dev python3 bash
+
+# Crear directorio de trabajo
+WORKDIR /app
+
+# Copiar package.json y package-lock.json
+COPY backend/package*.json ./
+
+# Instalar dependencias
+RUN npm install
+
+# Copiar código fuente
+COPY backend/ ./
+
+# Compilar TypeScript
+RUN npm run build
+
+# Script para compilar phpcompiler y arrancar backend
+RUN echo '#!/bin/sh' > /start.sh && \
+    echo 'echo "🔨 Compilando phpcompiler para Alpine..."' >> /start.sh && \
+    echo 'cd /tmp' >> /start.sh && \
+    echo 'cp /compiler/*.c /compiler/*.h /compiler/*.l /compiler/*.y . 2>/dev/null || true' >> /start.sh && \
+    echo 'if [ -f php.y ]; then' >> /start.sh && \
+    echo '  bison -d -v php.y 2>/dev/null' >> /start.sh && \
+    echo '  flex php.l 2>/dev/null' >> /start.sh && \
+    echo '  gcc -Wall -g -o phpcompiler php.tab.c lex.yy.c -lfl 2>&1 && \\' >> /start.sh && \
+    echo '    cp phpcompiler /compiler/ && echo "✅ Compilador listo"' >> /start.sh && \
+    echo 'else' >> /start.sh && \
+    echo '  echo "⚠️  No se encontraron archivos fuente"' >> /start.sh && \
+    echo 'fi' >> /start.sh && \
+    echo 'cd /app' >> /start.sh && \
+    echo 'exec npm run start:prod' >> /start.sh && \
+    chmod +x /start.sh
+
+# Exponer puerto
+EXPOSE 3001
+
+# Comando de inicio
+CMD ["/start.sh"]

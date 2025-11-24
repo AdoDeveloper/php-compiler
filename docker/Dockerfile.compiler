@@ -1,0 +1,40 @@
+# Dockerfile para el compilador PHP (Lex/Yacc) - Docker Desktop
+# NO modificar este archivo - es para desarrollo local con docker-compose
+# Para deployment en Render usar: docker/Dockerfile.deploy
+FROM gcc:latest
+
+# Instalar dependencias necesarias
+RUN apt-get update && apt-get install -y \
+    flex \
+    bison \
+    make \
+    && rm -rf /var/lib/apt/lists/*
+
+# Crear directorio de trabajo
+WORKDIR /compiler
+
+# Copiar archivos del compilador
+COPY compiler/php.l /compiler/
+COPY compiler/php.y /compiler/
+COPY compiler/tabsim.h /compiler/
+COPY compiler/tabsim.c /compiler/
+COPY compiler/Makefile /compiler/
+
+# Script para compilar en tiempo de ejecución
+RUN echo '#!/bin/sh' > /compile.sh && \
+    echo 'cd /compiler' >> /compile.sh && \
+    echo 'if [ ! -f phpcompiler ]; then' >> /compile.sh && \
+    echo '  echo "=== Compilando compilador PHP ===" '>> /compile.sh && \
+    echo '  bison -d -v php.y 2>&1' >> /compile.sh && \
+    echo '  flex php.l' >> /compile.sh && \
+    echo '  gcc -Wall -g -o phpcompiler php.tab.c lex.yy.c -lfl 2>&1 && echo "✅ Compilación exitosa"' >> /compile.sh && \
+    echo 'else' >> /compile.sh && \
+    echo '  echo "✅ Compilador ya existe"' >> /compile.sh && \
+    echo 'fi' >> /compile.sh && \
+    echo 'tail -f /dev/null' >> /compile.sh && \
+    chmod +x /compile.sh
+
+# Exponer el directorio para el backend
+VOLUME /compiler
+
+CMD ["/compile.sh"]
